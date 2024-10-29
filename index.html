@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusRoute - Rotas de Ônibus em Tempo Real</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="onibus.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>BusRoute</h1>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#sobre">Sobre</a></li>
+                <li><a href="#rotas">Rotas</a></li>
+                <li><a href="#tempo-real">Tempo Real</a></li>
+            </ul>
+        </nav>
+        <button class="contact-btn">Contato</button>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h2>Rotas de Ônibus em Tempo Real</h2>
+            <p>O BusRoute é o seu guia prático para encontrar as melhores rotas de ônibus, garantindo que você chegue ao seu destino de forma rápida e fácil.</p>
+            <p>Acompanhe as <span>rotas e a Localização</span> dos ônibus em tempo real na sua cidade.</p>
+        </div>
+    </section>
+
+    <section id="tempo-real">
+        <h2>Localização em Tempo Real</h2>
+        <div id="map"></div>
+    </section>
+
+    <footer>
+        <p>© 2024 BusRoute. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
