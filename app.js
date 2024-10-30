@@ -1,5 +1,5 @@
-  // Configuração do Firebase
-  const firebaseConfig = {
+// Configuração do Firebase
+const firebaseConfig = {
     apiKey: "AIzaSyAjcrIz-xMUKH6Wdy4DVa_H5dqM_csl03k",
     authDomain: "meuprojeto-9e112.firebaseapp.com",
     databaseURL: "https://meuprojeto-9e112-default-rtdb.firebaseio.com",
@@ -14,9 +14,35 @@
 const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Inicialização do mapa
-const map = L.map('map').setView([-7.2155, -35.8813], 13); // Coordenadas iniciais (exemplo)
+// Variáveis para controle de login
+const correctUsername = "123";
+const correctPassword = "123";
+let isLoggedIn = false;
 
+// Função de login
+function login() {
+    const username = prompt("Digite seu usuário:");
+    const password = prompt("Digite sua senha:");
+
+    if (username === correctUsername && password === correctPassword) {
+        alert("Login bem-sucedido!");
+        isLoggedIn = true;
+        getLocation(); // Inicia a localização apenas após login
+        updateBusLocations();
+    } else {
+        alert("Usuário ou senha incorretos. Tente novamente.");
+        login(); // Tenta novamente se as credenciais estiverem erradas
+    }
+}
+
+// Inicialização do mapa
+const map = L.map('map', {
+    center: [-7.2155, -35.8813], // Coordenadas iniciais (exemplo)
+    zoom: 13, // Nível de zoom inicial
+    gestureHandling: true // Habilita o controle de gestos
+});
+
+// Adiciona a camada de tile ao mapa
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
 }).addTo(map);
@@ -109,6 +135,10 @@ function updateBusLocations() {
     });
 }
 
-// Inicializa a localização do usuário e escuta as atualizações dos ônibus
-getLocation();
-updateBusLocations();
+// Mantém o zoom fixo
+map.on('zoomend', function() {
+    map.setZoom(13);
+});
+
+// Chama a função de login ao carregar o script
+login();
