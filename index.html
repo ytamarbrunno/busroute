@@ -36,10 +36,21 @@
         <div id="map"></div>
     </section>
 
+    <!-- Formulário de Login para os motoristas -->
+    <section id="login-section">
+        <h2>Login do Motorista</h2>
+        <form id="login-form">
+            <input type="text" id="username" placeholder="Usuário" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+    </section>
+
     <footer>
         <p>© 2024 BusRoute. Todos os direitos reservados.</p>
     </footer>
 
+    <!-- Scripts necessários -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
