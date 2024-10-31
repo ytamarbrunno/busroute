@@ -11,62 +11,134 @@ const firebaseConfig = {
 };
 
 // Inicializa o Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+const app = firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Elementos HTML para o login
-const loginForm = document.getElementById("loginForm");
-const loginSection = document.getElementById("loginSection");
-const appSection = document.getElementById("appSection");
+// Variáveis para controle de login
+const correctUsername = "123";
+const correctPassword = "123";
+let isLoggedIn = false;
 
-// Função de login para motoristas
-loginForm.addEventListener("submit", (event) => {
-    event.preventDefault();
+// Função de login
+function login() {
+    const username = prompt("Digite seu usuário:");
+    const password = prompt("Digite sua senha:");
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            alert("Login realizado com sucesso!");
-            loginSection.style.display = "none";
-            appSection.style.display = "block";
-        })
-        .catch((error) => {
-            console.error("Erro de login:", error.message);
-            alert("Erro ao fazer login. Verifique suas credenciais.");
-        });
-});
+    if (username === correctUsername && password === correctPassword) {
+        alert("Login bem-sucedido!");
+        isLoggedIn = true;
+        getLocation(); // Inicia a localização apenas após login
+        updateBusLocations();
+    } else {
+        alert("Usuário ou senha incorretos. Tente novamente.");
+        login(); // Tenta novamente se as credenciais estiverem erradas
+    }
+}
 
 // Inicialização do mapa
-const map = L.map('map', { zoomControl: false }).setView([-7.2155, -35.8813], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-// Ícones personalizados para usuário e ônibus
-const busIcon = L.icon({
-    iconUrl: 'onibus.png',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30]
+const map = L.map('map', {
+    center: [-7.2155, -35.8813], // Coordenadas iniciais (exemplo)
+    zoom: 13, // Nível de zoom inicial
+    gestureHandling: true // Habilita o controle de gestos
 });
 
-// Função para rastrear e exibir ônibus no mapa
+// Adiciona a camada de tile ao mapa
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+}).addTo(map);
+
+// Criar ícones para o usuário e para o ônibus
+const userIcon = L.icon({
+    iconUrl: 'onibus.png', // Caminho do ícone do usuário
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+});
+
+const busIcon = L.icon({
+    iconUrl: 'onibus.png', // Caminho do ícone do ônibus
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+});
+
+// Armazena os marcadores no mapa
+const markers = {};
+
+// Função para salvar a posição do usuário no Firebase e centralizar o mapa
+function updatePosition(position) {
+    const userLat = position.coords.latitude;
+    const userLng = position.coords.longitude;
+    const userId = "meuIdUsuario"; // Substitua pelo ID único do usuário
+
+    // Salva a localização no Firebase
+    database.ref('locations/' + userId).set({
+        latitude: userLat,
+        longitude: userLng
+    });
+
+    // Centraliza o mapa na localização do usuário e atualiza o marcador do usuário
+    if (!markers[userId]) {
+        markers[userId] = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
+            .bindPopup("Você está aqui!")
+            .openPopup();
+    } else {
+        markers[userId].setLatLng([userLat, userLng]);
+    }
+
+    map.setView([userLat, userLng], 13);
+}
+
+// Função para capturar a localização do usuário e atualizar em tempo real no Firebase
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(updatePosition, showError);
+    } else {
+        alert("Geolocalização não é suportada por este navegador.");
+    }
+}
+
+// Função para lidar com erros de geolocalização
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("Usuário negou a solicitação de Geolocalização.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Localização indisponível.");
+            break;
+        case error.TIMEOUT:
+            alert("A solicitação para obter a localização do usuário expirou.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("Um erro desconhecido ocorreu.");
+            break;
+    }
+}
+
+// Função para adicionar e atualizar a localização dos ônibus em tempo real
 function updateBusLocations() {
     database.ref('locations').on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
+            const userId = childSnapshot.key;
             const data = childSnapshot.val();
-            const busId = childSnapshot.key;
-
-            // Atualiza ou adiciona marcadores de ônibus
-            if (markers[busId]) {
-                markers[busId].setLatLng([data.latitude, data.longitude]);
+            
+            // Verifica se o marcador já existe e atualiza a posição
+            if (markers[userId]) {
+                markers[userId].setLatLng([data.latitude, data.longitude]);
             } else {
-                markers[busId] = L.marker([data.latitude, data.longitude], { icon: busIcon }).addTo(map)
-                    .bindPopup(`Ônibus: ${busId}`);
+                // Cria um novo marcador para cada ônibus
+                const icon = (userId === "meuIdUsuario") ? userIcon : busIcon;
+                const marker = L.marker([data.latitude, data.longitude], { icon }).addTo(map);
+                marker.bindPopup(userId === "meuIdUsuario" ? "Você está aqui!" : `Ônibus: ${userId}`);
+                markers[userId] = marker;
             }
         });
     });
 }
 
-// Chamadas principais
-updateBusLocations();
+// Mantém o zoom fixo
+map.on('zoomend', function() {
+    map.setZoom(13);
+});
+
+// Chama a função de login ao carregar o script
+login();
