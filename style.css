@@ -1,15 +1,22 @@
-body {
+/* Reset básico */
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
     font-family: 'Poppins', sans-serif;
     background-color: #0A192F;
     color: #FFFFFF;
 }
 
+/* Estilos do Header */
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 60px;
+    padding: 15px 40px;
     background-color: #0A192F;
 }
 
@@ -21,7 +28,6 @@ nav {
 nav h1 {
     font-size: 2rem;
     color: #CCD6F6;
-    margin: 0;
     margin-right: 50px;
 }
 
@@ -29,8 +35,6 @@ nav ul {
     list-style: none;
     display: flex;
     gap: 30px;
-    margin: 0;
-    padding: 0;
 }
 
 nav ul li a {
@@ -50,22 +54,122 @@ nav ul li a {
     color: #0A192F;
 }
 
+/* Hero Section */
 .hero {
     text-align: center;
-    padding: 100px 20px;
+    padding: 80px 20px;
 }
 
+.hero h2 {
+    font-size: 2.5rem;
+    color: #CCD6F6;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: #A8B2D1;
+    margin-top: 10px;
+}
+
+/* Seção Tempo Real */
 #tempo-real {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centraliza o conteúdo do tempo real */
+    align-items: center;
+    padding: 30px 0;
 }
 
+#tempo-real h2 {
+    font-size: 2rem;
+    color: #CCD6F6;
+}
+
+/* Mapa */
 #map {
-    height: 500px; /* Defina a altura do mapa */
-    width: 90%; /* Ocupa 90% da largura da tela */
-    max-width: 800px; /* Largura máxima do mapa */
+    height: 500px;
+    width: 90%;
+    max-width: 800px;
     border: 1px solid #A8B2D1;
     border-radius: 8px;
-    margin-top: 20px; /* Espaço acima do mapa */
+    margin-top: 20px;
+}
+
+/* Seção de Login */
+#login-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #112240;
+    border-radius: 8px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 400px;
+}
+
+#login-section h2 {
+    color: #CCD6F6;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+}
+
+#login-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#login-form input {
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 5px;
+    border: 1px solid #A8B2D1;
+    font-size: 1rem;
+    background-color: #0A192F;
+    color: #CCD6F6;
+}
+
+#login-form button {
+    padding: 10px;
+    background-color: #CCD6F6;
+    color: #0A192F;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 15px 0;
+    background-color: #0A192F;
+    color: #A8B2D1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    nav ul {
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .hero h2 {
+        font-size: 2rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+    }
+
+    #map {
+        height: 400px;
+    }
 }
