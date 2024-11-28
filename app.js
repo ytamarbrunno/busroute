@@ -53,11 +53,6 @@ function updateDriverLocation(position) {
             latitude,
             longitude,
         });
-
-        // Remove a localização ao sair da página
-        window.addEventListener("beforeunload", () => {
-            database.ref(`locations/${userId}`).remove();
-        });
     }
 }
 
@@ -129,6 +124,14 @@ document.getElementById("login-form").addEventListener("submit", (event) => {
         document.getElementById("tempo-real").scrollIntoView();
     } else {
         alert("Credenciais inválidas. Tente novamente.");
+    }
+});
+
+// Detecta quando o motorista fecha ou sai da página
+window.addEventListener("beforeunload", () => {
+    if (userId) {
+        // Remove a localização do motorista no Firebase
+        database.ref(`locations/${userId}`).remove();
     }
 });
 
