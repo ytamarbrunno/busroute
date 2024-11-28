@@ -1,144 +1,136 @@
 // Configuração do Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyAjcrIz-xMUKH6Wdy4DVa_H5dqM_csl03k",
-    authDomain: "meuprojeto-9e112.firebaseapp.com",
-    databaseURL: "https://meuprojeto-9e112-default-rtdb.firebaseio.com",
-    projectId: "meuprojeto-9e112",
-    storageBucket: "meuprojeto-9e112.appspot.com",
-    messagingSenderId: "503482106433",
-    appId: "1:503482106433:web:e56a21e659eb129043bcc0",
-    measurementId: "G-GSF8S4SFHC"
+    apiKey: "AIzaSyBLAHqLES0A-KB8u36YsrMZu8Xb7XH_e9U",
+    authDomain: "busroute-adad5.firebaseapp.com",
+    databaseURL: "https://busroute-adad5-default-rtdb.firebaseio.com",
+    projectId: "busroute-adad5",
+    storageBucket: "busroute-adad5.appspot.com",
+    messagingSenderId: "960709540693",
+    appId: "1:960709540693:web:ea53e6591df3927faa0ddc",
+    measurementId: "G-NKGS7NKLRD",
 };
 
 // Inicializa o Firebase
-const app = firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Variáveis para controle de login
-const correctUsername = "123";
-const correctPassword = "123";
-let isLoggedIn = false;
-
-// Função de login
-function login() {
-    const username = prompt("Digite seu usuário:");
-    const password = prompt("Digite sua senha:");
-
-    if (username === correctUsername && password === correctPassword) {
-        alert("Login bem-sucedido!");
-        isLoggedIn = true;
-        getLocation(); // Inicia a localização apenas após login
-        updateBusLocations();
-    } else {
-        alert("Usuário ou senha incorretos. Tente novamente.");
-        login(); // Tenta novamente se as credenciais estiverem erradas
-    }
-}
-
-// Inicialização do mapa
-const map = L.map('map', {
-    center: [-7.2155, -35.8813], // Coordenadas iniciais (exemplo)
-    zoom: 13, // Nível de zoom inicial
-    gestureHandling: true // Habilita o controle de gestos
+// Inicializa o mapa
+const map = L.map("map", {
+    center: [-7.2155, -35.8813], // Campina Grande
+    zoom: 13,
 });
 
-// Adiciona a camada de tile ao mapa
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Adiciona camada de tile ao mapa
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
 }).addTo(map);
 
-// Criar ícones para o usuário e para o ônibus
-const userIcon = L.icon({
-    iconUrl: 'onibus.png', // Caminho do ícone do usuário
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
-});
-
+// Ícone para motoristas
 const busIcon = L.icon({
-    iconUrl: 'onibus.png', // Caminho do ícone do ônibus
+    iconUrl: "onibus.png",
     iconSize: [30, 30],
     iconAnchor: [15, 30],
 });
 
 // Armazena os marcadores no mapa
-const markers = {};
+const busMarkers = {};
 
-// Função para salvar a posição do usuário no Firebase e centralizar o mapa
-function updatePosition(position) {
-    const userLat = position.coords.latitude;
-    const userLng = position.coords.longitude;
-    const userId = "meuIdUsuario"; // Substitua pelo ID único do usuário
+// Configuração das credenciais fixas
+const FIXED_USERNAME = "123";
+const FIXED_PASSWORD = "123";
 
-    // Salva a localização no Firebase
-    database.ref('locations/' + userId).set({
-        latitude: userLat,
-        longitude: userLng
-    });
+// Identificador único para o motorista logado
+let userId = null;
 
-    // Centraliza o mapa na localização do usuário e atualiza o marcador do usuário
-    if (!markers[userId]) {
-        markers[userId] = L.marker([userLat, userLng], { icon: userIcon }).addTo(map)
-            .bindPopup("Você está aqui!")
-            .openPopup();
-    } else {
-        markers[userId].setLatLng([userLat, userLng]);
+// Função para capturar e atualizar a localização no Firebase
+function updateDriverLocation(position) {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+
+    // Atualiza a localização do motorista no Firebase
+    if (userId) {
+        database.ref(`locations/${userId}`).set({
+            latitude,
+            longitude,
+        });
+
+        // Remove a localização ao sair da página
+        window.addEventListener("beforeunload", () => {
+            database.ref(`locations/${userId}`).remove();
+        });
     }
-
-    map.setView([userLat, userLng], 13);
 }
 
-// Função para capturar a localização do usuário e atualizar em tempo real no Firebase
-function getLocation() {
+// Função para iniciar o rastreamento de localização
+function startTracking() {
     if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(updatePosition, showError);
+        navigator.geolocation.watchPosition(
+            updateDriverLocation,
+            (error) => {
+                console.error("Erro ao acessar a localização:", error);
+            },
+            { enableHighAccuracy: true }
+        );
     } else {
-        alert("Geolocalização não é suportada por este navegador.");
+        alert("Geolocalização não é suportada pelo navegador.");
     }
 }
 
-// Função para lidar com erros de geolocalização
-function showError(error) {
-    switch(error.code) {
-        case error.PERMISSION_DENIED:
-            alert("Usuário negou a solicitação de Geolocalização.");
-            break;
-        case error.POSITION_UNAVAILABLE:
-            alert("Localização indisponível.");
-            break;
-        case error.TIMEOUT:
-            alert("A solicitação para obter a localização do usuário expirou.");
-            break;
-        case error.UNKNOWN_ERROR:
-            alert("Um erro desconhecido ocorreu.");
-            break;
-    }
-}
+// Função para exibir a localização de motoristas em tempo real no mapa
+function displayDriversOnMap() {
+    database.ref("locations").on("value", (snapshot) => {
+        const activeDriverIds = new Set();
 
-// Função para adicionar e atualizar a localização dos ônibus em tempo real
-function updateBusLocations() {
-    database.ref('locations').on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
-            const userId = childSnapshot.key;
+            const driverId = childSnapshot.key;
             const data = childSnapshot.val();
-            
-            // Verifica se o marcador já existe e atualiza a posição
-            if (markers[userId]) {
-                markers[userId].setLatLng([data.latitude, data.longitude]);
+            activeDriverIds.add(driverId);
+
+            // Atualiza ou adiciona marcadores no mapa
+            if (busMarkers[driverId]) {
+                busMarkers[driverId].setLatLng([data.latitude, data.longitude]);
             } else {
-                // Cria um novo marcador para cada ônibus
-                const icon = (userId === "meuIdUsuario") ? userIcon : busIcon;
-                const marker = L.marker([data.latitude, data.longitude], { icon }).addTo(map);
-                marker.bindPopup(userId === "meuIdUsuario" ? "Você está aqui!" : `Ônibus: ${userId}`);
-                markers[userId] = marker;
+                const marker = L.marker([data.latitude, data.longitude], {
+                    icon: busIcon,
+                }).addTo(map);
+                marker.bindPopup(`Motorista: ${driverId}`);
+                busMarkers[driverId] = marker;
+            }
+        });
+
+        // Remove marcadores de motoristas inativos
+        Object.keys(busMarkers).forEach((driverId) => {
+            if (!activeDriverIds.has(driverId)) {
+                map.removeLayer(busMarkers[driverId]);
+                delete busMarkers[driverId];
             }
         });
     });
 }
 
-// Mantém o zoom fixo
-map.on('zoomend', function() {
-    map.setZoom(13);
+// Função de login
+document.getElementById("login-form").addEventListener("submit", (event) => {
+    event.preventDefault(); // Impede o envio do formulário
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (username === FIXED_USERNAME && password === FIXED_PASSWORD) {
+        alert("Login bem-sucedido!");
+
+        // Define o ID do motorista logado e inicia o rastreamento
+        userId = `driver_${Date.now()}`;
+        startTracking();
+
+        // Oculta a seção de login
+        document.getElementById("login-section").style.display = "none";
+
+        // Exibe o mapa
+        document.getElementById("tempo-real").scrollIntoView();
+    } else {
+        alert("Credenciais inválidas. Tente novamente.");
+    }
 });
 
-// Chama a função de login ao carregar o script
-login();
+// Inicia a exibição de motoristas no mapa (clientes não precisam de login)
+displayDriversOnMap();
