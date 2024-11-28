@@ -47,12 +47,17 @@ function updateDriverLocation(position) {
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
 
-    // Atualiza a localização do motorista no Firebase
     if (userId) {
-        database.ref(`locations/${userId}`).set({
+        const driverRef = database.ref(`locations/${userId}`);
+        
+        // Atualiza a localização do motorista
+        driverRef.set({
             latitude,
             longitude,
         });
+
+        // Configura remoção automática no Firebase quando desconectado
+        driverRef.onDisconnect().remove();
     }
 }
 
@@ -66,6 +71,9 @@ function startTracking() {
             },
             { enableHighAccuracy: true }
         );
+
+        // Inicia o heartbeat
+        startHeartbeat();
     } else {
         alert("Geolocalização não é suportada pelo navegador.");
     }
@@ -103,6 +111,18 @@ function displayDriversOnMap() {
     });
 }
 
+// Função para enviar sinais de "heartbeat"
+function startHeartbeat() {
+    if (userId) {
+        const driverRef = database.ref(`locations/${userId}`);
+        
+        // Atualiza um "heartbeat" regularmente
+        setInterval(() => {
+            driverRef.update({ lastActive: Date.now() });
+        }, 5000); // Atualiza a cada 5 segundos
+    }
+}
+
 // Função de login
 document.getElementById("login-form").addEventListener("submit", (event) => {
     event.preventDefault(); // Impede o envio do formulário
@@ -124,14 +144,6 @@ document.getElementById("login-form").addEventListener("submit", (event) => {
         document.getElementById("tempo-real").scrollIntoView();
     } else {
         alert("Credenciais inválidas. Tente novamente.");
-    }
-});
-
-// Detecta quando o motorista fecha ou sai da página
-window.addEventListener("beforeunload", () => {
-    if (userId) {
-        // Remove a localização do motorista no Firebase
-        database.ref(`locations/${userId}`).remove();
     }
 });
 
